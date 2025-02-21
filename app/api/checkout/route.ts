@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const allowedPlanTypes = ["week", "month", "year"];
+    const allowedPlanTypes = ["month", "year"];
     if (!allowedPlanTypes.includes(planType)) {
       return NextResponse.json(
         { error: "Invalid plan type." },
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create Stripe Checkout Session
+    // Create Stripe Checkout Session with a 7-day free trial
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -42,9 +42,12 @@ export async function POST(request: NextRequest) {
       ],
       customer_email: email,
       mode: "subscription",
+      subscription_data: {
+        trial_period_days: 7, // <-- Add a 7-day free trial
+      },
       metadata: { clerkUserId: userId, planType },
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/mealplan`, // Redirect to /mealplan after success
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/subscribe`, // Redirect to /subscribe if canceled
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/mealplan`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/subscribe`,
     });
 
     // Return the Checkout Session URL

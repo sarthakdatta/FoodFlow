@@ -1,13 +1,43 @@
-// app/subscribe/page.tsx
 "use client";
 
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { availablePlans, Plan } from "@/lib/plans"; // Adjust the path based on your project structure
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import toast, { Toaster } from "react-hot-toast"; // Optional: For better user feedback
+import toast, { Toaster } from "react-hot-toast";
+import { Button } from "@/components/ui/button"; // Import shadcn/ui Button
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"; // Import shadcn/ui Card components
+import { Badge } from "@/components/ui/badge"; // Import shadcn/ui Badge
 
+// Define the available plans
+const availablePlans = [
+  {
+    name: "Monthly",
+    interval: "month",
+    amount: "7.99",
+    description: "Perfect for individuals who want flexibility.",
+    features: [
+      "Exclusive 7-day Free Trial",
+      "Access to all meal plans",
+      "Weekly recipe updates",
+      "Cancel anytime",
+    ],
+    isPopular: true,
+  },
+  {
+    name: "Yearly",
+    interval: "year",
+    amount: "99.99",
+    description: "Best value for long-term commitment.",
+    features: [
+      "Exclusive 7-day Free Trial",
+      "Access to all meal plans",
+      "Weekly recipe updates",
+      "Save 4% compared to monthly",
+    ],
+    isPopular: false,
+  },
+];
 // Define the shape of the successful response
 type SubscribeResponse = {
   url: string;
@@ -50,7 +80,6 @@ const subscribeToPlan = async ({
 export default function SubscribePage() {
   const { user } = useUser(); // Access the current user
   const router = useRouter(); // Next.js router for navigation
-  const queryClient = useQueryClient();
 
   const userId = user?.id;
   const email = user?.emailAddresses?.[0]?.emailAddress || "";
@@ -99,48 +128,44 @@ export default function SubscribePage() {
       <Toaster position="top-right" /> {/* Optional: For toast notifications */}
       {/* Section Header */}
       <div>
-        <h2 className="text-3xl font-bold text-center mt-12 sm:text-5xl tracking-tight">
+        <h2 className="text-3xl font-bold text-center mt-6 sm:text-5xl tracking-tight">
           Pricing
         </h2>
         <p className="max-w-3xl mx-auto mt-4 text-xl text-center">
-          Get started on our weekly plan or upgrade to monthly or yearly when
-          you’re ready.
+          Choose the plan that works best for you.
+        </p>
+        <p className="max-w-3xl mx-auto mt-4 text-2xl text-center">
+          <b>Sign up now and receive our exclusive 7-day free trial!</b>
         </p>
       </div>
       {/* Cards Container */}
-      <div className="mt-12 container mx-auto space-y-12 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-x-8">
+      <div className="mt-12 container mx-auto space-y-12 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-x-8">
         {/* Map over availablePlans to render plan cards */}
         {availablePlans.map((plan, key) => (
-          <div
-            key={key}
-            className="
-              relative p-8 
-              border border-gray-200 rounded-2xl shadow-sm 
-              flex flex-col
-              hover:shadow-md hover:scale-[1.02] 
-              transition-transform duration-200 ease-out
-            "
-          >
-            <div className="flex-1">
-              {/* Conditionally render "Most popular" label */}
+          <Card key={key} className="relative hover:scale-105 transition">
+            <CardHeader>
               {plan.isPopular && (
-                <p className="absolute top-0 py-1.5 px-4 bg-emerald-500 text-white rounded-full text-xs font-semibold uppercase tracking-wide transform -translate-y-1/2">
-                  Most popular
-                </p>
+                <Badge className="absolute top-0 right-0 m-4 bg-primary text-white">
+                  Most Popular
+                </Badge>
               )}
-              <h3 className="text-xl font-semibold">{plan.name}</h3>
-              <p className="mt-4 flex items-baseline">
-                <span className="text-5xl font-extrabold tracking-tight">
+              <CardTitle className="text-2xl font-semibold">
+                {plan.name}
+              </CardTitle>
+              <CardDescription className="mt-4 flex items-baseline">
+                <span className="text-5xl font-extrabold tracking-tight text-white">
                   ${plan.amount}
                 </span>
-                <span className="ml-1 text-xl font-semibold">
+                <span className="ml-1 text-xl font-semibold text-white">
                   /{plan.interval}
                 </span>
-              </p>
-              <p className="mt-6">{plan.description}</p>
-              <ul role="list" className="mt-6 space-y-4">
+              </CardDescription>
+              <p className="mt-6 text-white">{plan.description}</p>
+            </CardHeader>
+            <CardContent>
+              <ul className="mt-6 space-y-4">
                 {plan.features.map((feature, index) => (
-                  <li key={index} className="flex">
+                  <li key={index} className="flex items-center">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -151,7 +176,7 @@ export default function SubscribePage() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="flex-shrink-0 w-6 h-6 text-emerald-500"
+                      className="flex-shrink-0 w-6 h-6 text-primary"
                     >
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
@@ -159,20 +184,17 @@ export default function SubscribePage() {
                   </li>
                 ))}
               </ul>
-            </div>
-
-            <button
-              className={`${
-                plan.interval === "month"
-                  ? "bg-emerald-500 text-white  hover:bg-emerald-600 "
-                  : "bg-emerald-100 text-emerald-700  hover:bg-emerald-200 "
-              }  mt-8 block w-full py-3 px-6 border border-transparent rounded-md text-center font-medium disabled:bg-gray-400 disabled:cursor-not-allowed`}
-              onClick={() => handleSubscribe(plan.interval)}
-              disabled={mutation.isPending}
-            >
-              {mutation.isPending ? "Please wait..." : `Subscribe ${plan.name}`}
-            </button>
-          </div>
+            </CardContent>
+            <CardFooter>
+              <Button
+                className="w-full"
+                onClick={() => handleSubscribe(plan.interval)}
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? "Please wait..." : `Subscribe ${plan.name}`}
+              </Button>
+            </CardFooter>
+          </Card>
         ))}
       </div>
     </div>

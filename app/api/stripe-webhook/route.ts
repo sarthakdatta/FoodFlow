@@ -1,7 +1,5 @@
-// app/api/webhooks/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // <-- import Prisma client
+import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
@@ -22,7 +20,7 @@ export async function POST(req: NextRequest) {
     );
   } catch (err: any) {
     console.error(`Webhook signature verification failed. ${err.message}`);
-    return NextResponse.json({ error: err.message }, { status: 400 });
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
   try {
@@ -42,19 +40,17 @@ export async function POST(req: NextRequest) {
         await handleSubscriptionDeleted(subscription);
         break;
       }
-      // Add more event types as needed
       default:
-        console.log(`Unhandled event type ${event.type}`);
+        console.log(`Unhandled event type: ${event.type}`);
     }
   } catch (e: any) {
-    console.error(`stripe error: ${e.message} | EVENT TYPE: ${event.type}`);
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    console.error(`Stripe webhook error: ${e.message} | EVENT TYPE: ${event.type}`);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 
-  return NextResponse.json({});
+  return NextResponse.json({ received: true });
 }
 
-// Handler for successful checkout sessions
 const handleCheckoutSessionCompleted = async (
   session: Stripe.Checkout.Session
 ) => {
@@ -66,47 +62,45 @@ const handleCheckoutSessionCompleted = async (
     return;
   }
 
-  // Retrieve subscription ID from the session
   const subscriptionId = session.subscription as string;
+  console.log("Subscription ID:", subscriptionId);
 
   if (!subscriptionId) {
     console.error("No subscription ID found in session.");
     return;
   }
 
-  console.log("HHHHEHHEHE");
-  // Update Prisma with subscription details
   try {
-    await prisma.profile.update({
+    console.log("Updating profile for user:", userId);
+    const updatedProfile = await prisma.profile.update({
       where: { userId },
       data: {
         stripeSubscriptionId: subscriptionId,
-        subscriptionActive: true,
+        subscriptionActive: true, // Activate subscription
         subscriptionTier: session.metadata?.planType || null,
       },
     });
+    console.log("Updated profile:", updatedProfile);
     console.log(`Subscription activated for user: ${userId}`);
   } catch (error: any) {
     console.error("Prisma Update Error:", error.message);
+    console.error("Error details:", error);
+    throw new Error("Failed to update profile with subscription details.");
   }
 };
 
 // Handler for failed invoice payments
 const handleInvoicePaymentFailed = async (invoice: Stripe.Invoice) => {
   const subscriptionId = invoice.subscription as string;
-  console.log(
-    "Handling invoice.payment_failed for subscription:",
-    subscriptionId
-  );
+  console.log("Handling invoice.payment_failed for subscription:", subscriptionId);
 
   if (!subscriptionId) {
     console.error("No subscription ID found in invoice.");
     return;
   }
 
-  // Retrieve userId from subscription ID
-  let userId: string | undefined;
   try {
+    // Find the user's profile using the subscription ID
     const profile = await prisma.profile.findUnique({
       where: { stripeSubscriptionId: subscriptionId },
       select: { userId: true },
@@ -117,37 +111,27 @@ const handleInvoicePaymentFailed = async (invoice: Stripe.Invoice) => {
       return;
     }
 
-    userId = profile.userId;
-  } catch (error: any) {
-    console.error("Prisma Query Error:", error.message);
-    return;
-  }
-
-  // Update Prisma with payment failure
-  try {
+    // Update the user's profile to deactivate the subscription
     await prisma.profile.update({
-      where: { userId },
+      where: { userId: profile.userId },
       data: {
-        subscriptionActive: false,
+        subscriptionActive: false, // Deactivate subscription
       },
     });
-    console.log(`Subscription payment failed for user: ${userId}`);
+    console.log(`Subscription payment failed for user: ${profile.userId}`);
   } catch (error: any) {
-    console.error("Prisma Update Error:", error.message);
+    console.error("Prisma Query or Update Error:", error.message);
+    throw new Error("Failed to handle payment failure.");
   }
 };
 
 // Handler for subscription deletions (e.g., cancellations)
 const handleSubscriptionDeleted = async (subscription: Stripe.Subscription) => {
   const subscriptionId = subscription.id;
-  console.log(
-    "Handling customer.subscription.deleted for subscription:",
-    subscriptionId
-  );
+  console.log("Handling customer.subscription.deleted for subscription:", subscriptionId);
 
-  // Retrieve userId from subscription ID
-  let userId: string | undefined;
   try {
+    // Find the user's profile using the subscription ID
     const profile = await prisma.profile.findUnique({
       where: { stripeSubscriptionId: subscriptionId },
       select: { userId: true },
@@ -158,23 +142,17 @@ const handleSubscriptionDeleted = async (subscription: Stripe.Subscription) => {
       return;
     }
 
-    userId = profile.userId;
-  } catch (error: any) {
-    console.error("Prisma Query Error:", error.message);
-    return;
-  }
-
-  // Update Prisma with subscription cancellation
-  try {
+    // Update the user's profile to deactivate the subscription
     await prisma.profile.update({
-      where: { userId },
+      where: { userId: profile.userId },
       data: {
-        subscriptionActive: false,
-        stripeSubscriptionId: null,
+        subscriptionActive: false, // Deactivate subscription
+        stripeSubscriptionId: null, // Clear the subscription ID
       },
     });
-    console.log(`Subscription canceled for user: ${userId}`);
+    console.log(`Subscription canceled for user: ${profile.userId}`);
   } catch (error: any) {
-    console.error("Prisma Update Error:", error.message);
+    console.error("Prisma Query or Update Error:", error.message);
+    throw new Error("Failed to handle subscription deletion.");
   }
 };

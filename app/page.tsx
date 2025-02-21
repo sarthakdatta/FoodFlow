@@ -117,7 +117,6 @@ export default function HomePage() {
 
         <div className="grid md:grid-cols-4 gap-8 text-center">
           
-          
           <div className="p-6">
             <div className="text-4xl font-bold text-primary mb-2">4.8/5</div>
             <p className="text-gray-400">Average Rating</p>
