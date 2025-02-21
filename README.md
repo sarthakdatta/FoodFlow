@@ -1,5 +1,7 @@
 # FoodFlow: AI Meal Planner
 
+<img width="1421" alt="Screenshot 2025-02-20 at 9 32 51 PM" src="https://github.com/user-attachments/assets/36dd8fd3-6faa-464b-b6d6-fefd294f7365" />
+
 
 ## Overview:
 
@@ -18,6 +20,7 @@
 - Clerk
 - Prisma
 - PostgreSQL
+
 
 
 
