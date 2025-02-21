@@ -116,20 +116,14 @@ export default function HomePage() {
         </div>
 
         <div className="grid md:grid-cols-4 gap-8 text-center">
-          <div className="p-6">
-            <div className="text-4xl font-bold text-primary mb-2">50K+</div>
-            <p className="text-gray-400">Active Users</p>
-          </div>
+          
           
           <div className="p-6">
             <div className="text-4xl font-bold text-primary mb-2">4.8/5</div>
             <p className="text-gray-400">Average Rating</p>
           </div>
           
-          <div className="p-6">
-            <div className="text-4xl font-bold text-primary mb-2">1M+</div>
-            <p className="text-gray-400">Meals Generated</p>
-          </div>
+
           
           <div className="p-6">
             <div className="text-4xl font-bold text-primary mb-2">92%</div>
