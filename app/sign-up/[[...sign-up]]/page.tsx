@@ -1,7 +1,5 @@
 import { SignUp } from "@clerk/nextjs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"; // Import shadcn/ui Card components
-import { Button } from "@/components/ui/button"; // Import shadcn/ui Button
-import Link from "next/link"; // For navigation
 
 export default function Page() {
   return (

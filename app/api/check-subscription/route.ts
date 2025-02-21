@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -22,8 +21,9 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ subscriptionActive: true });
-  } catch (err: any) {
-    console.error("check-subscription error:", err.message);
+  } catch (err: unknown) {
+    console.error("check-subscription error:", err instanceof Error ? err.message : "Unknown error");
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

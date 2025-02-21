@@ -52,10 +52,17 @@ export async function POST(request: NextRequest) {
 
     // Return the Checkout Session URL
     return NextResponse.json({ url: session.url });
-  } catch (error: any) {
-    console.error("Checkout API Error:", error.message);
+  } catch (error: unknown) {
+    console.error(
+      "Checkout API Error:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      {
+        error:
+          error instanceof Error ? error.message : "Internal Server Error",
+      },
       { status: 500 }
     );
   }

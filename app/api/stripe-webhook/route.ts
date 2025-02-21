@@ -18,8 +18,11 @@ export async function POST(req: NextRequest) {
       signature || "",
       webhookSecret
     );
-  } catch (err: any) {
-    console.error(`Webhook signature verification failed. ${err.message}`);
+  } catch (err: unknown) {
+    console.error(
+      "Webhook signature verification failed:",
+      err instanceof Error ? err.message : "Unknown error"
+    );
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -43,9 +46,17 @@ export async function POST(req: NextRequest) {
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
-  } catch (e: any) {
-    console.error(`Stripe webhook error: ${e.message} | EVENT TYPE: ${event.type}`);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (e: unknown) {
+    console.error(
+      "Stripe webhook error:",
+      e instanceof Error ? e.message : "Unknown error",
+      "| EVENT TYPE:",
+      event.type
+    );
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ received: true });
@@ -82,8 +93,11 @@ const handleCheckoutSessionCompleted = async (
     });
     console.log("Updated profile:", updatedProfile);
     console.log(`Subscription activated for user: ${userId}`);
-  } catch (error: any) {
-    console.error("Prisma Update Error:", error.message);
+  } catch (error: unknown) {
+    console.error(
+      "Prisma Update Error:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
     console.error("Error details:", error);
     throw new Error("Failed to update profile with subscription details.");
   }
@@ -92,7 +106,10 @@ const handleCheckoutSessionCompleted = async (
 // Handler for failed invoice payments
 const handleInvoicePaymentFailed = async (invoice: Stripe.Invoice) => {
   const subscriptionId = invoice.subscription as string;
-  console.log("Handling invoice.payment_failed for subscription:", subscriptionId);
+  console.log(
+    "Handling invoice.payment_failed for subscription:",
+    subscriptionId
+  );
 
   if (!subscriptionId) {
     console.error("No subscription ID found in invoice.");
@@ -119,8 +136,11 @@ const handleInvoicePaymentFailed = async (invoice: Stripe.Invoice) => {
       },
     });
     console.log(`Subscription payment failed for user: ${profile.userId}`);
-  } catch (error: any) {
-    console.error("Prisma Query or Update Error:", error.message);
+  } catch (error: unknown) {
+    console.error(
+      "Prisma Query or Update Error:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
     throw new Error("Failed to handle payment failure.");
   }
 };
@@ -128,7 +148,10 @@ const handleInvoicePaymentFailed = async (invoice: Stripe.Invoice) => {
 // Handler for subscription deletions (e.g., cancellations)
 const handleSubscriptionDeleted = async (subscription: Stripe.Subscription) => {
   const subscriptionId = subscription.id;
-  console.log("Handling customer.subscription.deleted for subscription:", subscriptionId);
+  console.log(
+    "Handling customer.subscription.deleted for subscription:",
+    subscriptionId
+  );
 
   try {
     // Find the user's profile using the subscription ID
@@ -151,8 +174,11 @@ const handleSubscriptionDeleted = async (subscription: Stripe.Subscription) => {
       },
     });
     console.log(`Subscription canceled for user: ${profile.userId}`);
-  } catch (error: any) {
-    console.error("Prisma Query or Update Error:", error.message);
+  } catch (error: unknown) {
+    console.error(
+      "Prisma Query or Update Error:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
     throw new Error("Failed to handle subscription deletion.");
   }
 };

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { CheckCircle, User, Settings, ClipboardCheck, ArrowRight, Star, Shield, Award, Users, Check, Phone, Mail } from "lucide-react";
+import { Card, CardTitle, CardDescription } from "@/components/ui/card";
+import { CheckCircle, User, Settings, ArrowRight, Check, Phone, Mail } from "lucide-react";
 import Image from "next/image";
 
 export default function HomePage() {
@@ -116,13 +116,10 @@ export default function HomePage() {
         </div>
 
         <div className="grid md:grid-cols-4 gap-8 text-center">
-          
           <div className="p-6">
             <div className="text-4xl font-bold text-primary mb-2">4.8/5</div>
             <p className="text-gray-400">Average Rating</p>
           </div>
-          
-
           
           <div className="p-6">
             <div className="text-4xl font-bold text-primary mb-2">92%</div>
@@ -198,6 +195,7 @@ export default function HomePage() {
           </Card>
         </div>
       </div>
+
       {/* Footer */}
       <footer className="bg-gray-900/50 border-t border-gray-800 mt-24">
         <div className="max-w-7xl mx-auto px-4 py-12">

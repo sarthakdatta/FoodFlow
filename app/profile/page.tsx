@@ -1,9 +1,8 @@
-// app/profile/page.tsx
 "use client";
 
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { availablePlans, Plan } from "@/lib/plans"; // Adjust the path based on your project structure
+import { availablePlans } from "@/lib/plans"; // Removed unused `Plan` import
 import Image from "next/image";
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast"; // Import toast
@@ -45,7 +44,7 @@ export default function ProfilePage() {
 
   // Mutation: Change Subscription Plan
   const changePlanMutation = useMutation<
-    any, // Replace with actual response type if available
+    { message: string }, // Replace with actual response type if available
     Error,
     string // The newPriceId
   >({
@@ -77,7 +76,7 @@ export default function ProfilePage() {
 
   // Mutation: Unsubscribe
   const unsubscribeMutation = useMutation<
-    any, // Replace with actual response type if available
+    { message: string }, // Replace with actual response type if available
     Error,
     void
   >({
