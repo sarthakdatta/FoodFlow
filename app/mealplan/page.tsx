@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Spinner } from "@/components/spinner";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { SendHorizonal } from "lucide-react";
+import { SendHorizonal, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -17,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 interface Meal {
   description: string;
@@ -41,24 +41,24 @@ interface MealPlanResponse {
 }
 
 interface MealPlanInput {
-  dietType: string;
+  dietType: string[];
   calories: number;
   proteinGoal: number;
-  allergies: string;
-  cuisine: string;
+  allergies: string[];
+  cuisine: string[];
   snacks: boolean;
   variety: number;
   days?: number;
 }
 
 export default function MealPlanDashboard() {
-  const [dietType, setDietType] = useState("");
-  const [calories, setCalories] = useState<string>("2000"); // Initialize as string
-  const [proteinGoal, setProteinGoal] = useState<string>("100"); // Initialize as string
-  const [allergies, setAllergies] = useState("");
-  const [cuisine, setCuisine] = useState("");
+  const [dietType, setDietType] = useState<string[]>([]);
+  const [calories, setCalories] = useState<number>(2000);
+  const [proteinGoal, setProteinGoal] = useState<number>(100);
+  const [allergies, setAllergies] = useState<string[]>([]);
+  const [cuisine, setCuisine] = useState<string[]>([]);
   const [snacks, setSnacks] = useState(false);
-  const [variety, setVariety] = useState<number>(1); // Default to 1 (no variations)
+  const [variety, setVariety] = useState<number>(1);
   const [caloriesError, setCaloriesError] = useState<string | null>(null);
   const [proteinError, setProteinError] = useState<string | null>(null);
 
@@ -90,12 +90,8 @@ export default function MealPlanDashboard() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Convert calories and proteinGoal to numbers
-    const caloriesNum = Number(calories);
-    const proteinGoalNum = Number(proteinGoal);
-
     // Validate calories
-    if (caloriesNum < 1000 || caloriesNum > 5000) {
+    if (calories < 1000 || calories > 5000) {
       setCaloriesError("Calories must be between 1000 and 5000.");
       return;
     } else {
@@ -103,7 +99,7 @@ export default function MealPlanDashboard() {
     }
 
     // Validate protein
-    if (proteinGoalNum < 40 || proteinGoalNum > 400) {
+    if (proteinGoal < 40 || proteinGoal > 400) {
       setProteinError("Protein must be between 40 and 400 grams.");
       return;
     } else {
@@ -112,8 +108,8 @@ export default function MealPlanDashboard() {
 
     const payload: MealPlanInput = {
       dietType,
-      calories: caloriesNum,
-      proteinGoal: proteinGoalNum,
+      calories,
+      proteinGoal,
       allergies,
       cuisine,
       snacks,
@@ -142,29 +138,43 @@ export default function MealPlanDashboard() {
     return mutation.data.mealPlan[day];
   };
 
+  // Function to handle multi-select changes
+  const handleMultiSelectChange = (value: string, currentState: string[], setState: React.Dispatch<React.SetStateAction<string[]>>) => {
+    if (currentState.includes(value)) {
+      setState(currentState.filter(item => item !== value));
+    } else {
+      setState([...currentState, value]);
+    }
+  };
+
+  // Function to clear all selected options
+  const clearAllOptions = (setState: React.Dispatch<React.SetStateAction<string[]>>) => {
+    setState([]);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center p-6 ">
+    <div className="min-h-screen flex flex-col items-center p-6">
       {/* Title */}
       <h1 className="text-4xl font-bold mb-8 text-primary">
         AI Meal Generator
       </h1>
 
       {/* Inputs Section */}
-      <Card className="w-full max-w-4xl mb-8">
+      <Card className="w-full max-w-4xl mb-8 shadow-lg">
         <CardHeader>
           <CardTitle className="text-center text-2xl">Meal Plan Preferences</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left Column: Dropdowns */}
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {/* Diet Type */}
                 <div className="space-y-2">
                   <Label htmlFor="dietType">Diet Type</Label>
-                  <Select value={dietType} onValueChange={setDietType}>
+                  <Select onValueChange={(value) => handleMultiSelectChange(value, dietType, setDietType)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a diet type" />
+                      <SelectValue placeholder="Select diet types" />
                     </SelectTrigger>
                     <SelectContent>
                       {dietTypes.map((type) => (
@@ -174,12 +184,26 @@ export default function MealPlanDashboard() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <div className="flex flex-wrap gap-2">
+                    {dietType.map((type) => (
+                      <Badge key={type} className="flex items-center gap-2">
+                        {type}
+                        <X
+                          className="h-3 w-3 cursor-pointer"
+                          onClick={() => handleMultiSelectChange(type, dietType, setDietType)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={() => clearAllOptions(setDietType)}>
+                    Clear All
+                  </Button>
                 </div>
 
                 {/* Allergies */}
                 <div className="space-y-2">
                   <Label htmlFor="allergies">Allergies or Restrictions</Label>
-                  <Select value={allergies} onValueChange={setAllergies}>
+                  <Select onValueChange={(value) => handleMultiSelectChange(value, allergies, setAllergies)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select allergies or restrictions" />
                     </SelectTrigger>
@@ -191,14 +215,28 @@ export default function MealPlanDashboard() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <div className="flex flex-wrap gap-2">
+                    {allergies.map((allergy) => (
+                      <Badge key={allergy} className="flex items-center gap-2">
+                        {allergy}
+                        <X
+                          className="h-3 w-3 cursor-pointer"
+                          onClick={() => handleMultiSelectChange(allergy, allergies, setAllergies)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={() => clearAllOptions(setAllergies)}>
+                    Clear All
+                  </Button>
                 </div>
 
                 {/* Preferred Cuisine */}
                 <div className="space-y-2">
                   <Label htmlFor="cuisine">Preferred Cuisine</Label>
-                  <Select value={cuisine} onValueChange={setCuisine}>
+                  <Select onValueChange={(value) => handleMultiSelectChange(value, cuisine, setCuisine)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a cuisine" />
+                      <SelectValue placeholder="Select cuisines" />
                     </SelectTrigger>
                     <SelectContent>
                       {cuisines.map((cuisine) => (
@@ -208,49 +246,67 @@ export default function MealPlanDashboard() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <div className="flex flex-wrap gap-2">
+                    {cuisine.map((selectedCuisine) => (
+                      <Badge key={selectedCuisine} className="flex items-center gap-2">
+                        {selectedCuisine}
+                        <X
+                          className="h-3 w-3 cursor-pointer"
+                          onClick={() => handleMultiSelectChange(selectedCuisine, cuisine, setCuisine)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={() => clearAllOptions(setCuisine)}>
+                    Clear All
+                  </Button>
                 </div>
               </div>
 
-              {/* Right Column: Number Inputs */}
-              <div className="space-y-4">
-                {/* Calories */}
+              {/* Right Column: Sliders */}
+              <div className="space-y-6">
+                {/* Calories Slider */}
                 <div className="space-y-2">
                   <Label htmlFor="calories">Daily Calorie Goal</Label>
-                  <Input
-                    type="number"
-                    id="calories"
-                    value={calories}
-                    onChange={(e) => setCalories(e.target.value)}
-                    placeholder="e.g., 2000"
-                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    required
-                  />
-                  {caloriesError && (
-                    <p className="text-sm text-red-600">{caloriesError}</p>
-                  )}
+                  <div className="flex items-center gap-4">
+                    <Slider
+                      id="calories"
+                      value={[calories]}
+                      onValueChange={([value]) => setCalories(value)}
+                      min={1000}
+                      max={5000}
+                      step={100}
+                    />
+                    <span className="text-lg font-medium">{calories} kcal</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Adjust your daily calorie intake goal.
+                  </p>
                 </div>
 
-                {/* Protein Goal */}
+                {/* Protein Goal Slider */}
                 <div className="space-y-2">
                   <Label htmlFor="proteinGoal">Daily Protein Goal (grams)</Label>
-                  <Input
-                    type="number"
-                    id="proteinGoal"
-                    value={proteinGoal}
-                    onChange={(e) => setProteinGoal(e.target.value)}
-                    placeholder="e.g., 100"
-                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    required
-                  />
-                  {proteinError && (
-                    <p className="text-sm text-red-600">{proteinError}</p>
-                  )}
+                  <div className="flex items-center gap-4">
+                    <Slider
+                      id="proteinGoal"
+                      value={[proteinGoal]}
+                      onValueChange={([value]) => setProteinGoal(value)}
+                      min={40}
+                      max={400}
+                      step={10}
+                    />
+                    <span className="text-lg font-medium">{proteinGoal} g</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Adjust your daily protein intake goal.
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Bottom Section: Snacks and Variety */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Snacks */}
               <div className="flex items-center space-x-2 p-4 border rounded-lg bg-muted">
                 <Checkbox
@@ -284,7 +340,7 @@ export default function MealPlanDashboard() {
             </div>
 
             {/* Submit Button */}
-            <Button type="submit" disabled={mutation.isPending} className="w-full mt-4">
+            <Button type="submit" disabled={mutation.isPending} className="w-full mt-6">
               {mutation.isPending ? "Generating..." : "Generate Meal Plan"}
               <SendHorizonal className="ml-2" />
             </Button>
@@ -300,7 +356,7 @@ export default function MealPlanDashboard() {
       </Card>
 
       {/* Meal Plan Section */}
-      <Card className="w-full max-w-4xl">
+      <Card className="w-full max-w-4xl shadow-lg">
         <CardHeader>
           <CardTitle>Weekly Meal Plan</CardTitle>
         </CardHeader>

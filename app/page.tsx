@@ -209,8 +209,8 @@ export default function HomePage() {
                 <Mail className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm text-gray-500">Email</p>
-                  <a href="mailto:hello@foodflow.ai" className="hover:text-primary transition">
-                    foodflow@gmail.com
+                  <a href="mailto:sarthu.datta@gmail.com" className="hover:text-primary transition">
+                    sarthu.datta@gmail.com
                   </a>
                 </div>
               </div>
@@ -223,6 +223,7 @@ export default function HomePage() {
                   </a>
                 </div>
               </div>
+            </div>
             </div>
 
             {/* Quick Links */}
@@ -247,41 +248,9 @@ export default function HomePage() {
               </ul>
             </div>
 
-            {/* Legal */}
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Legal</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="/privacy" className="text-gray-400 hover:text-primary transition">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/terms" className="text-gray-400 hover:text-primary transition">
-                    Terms of Service
-                  </Link>
-                </li>
-              </ul>
-            </div>
+            
 
-            {/* Newsletter */}
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Stay Updated</h3>
-              <p className="text-gray-400 mb-4">
-                Subscribe to our newsletter for tips and updates.
-              </p>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="bg-gray-800 text-white rounded-lg px-4 py-2 flex-1 border border-gray-700 focus:outline-none focus:border-primary"
-                />
-                <Button className="bg-primary hover:bg-primary/90">
-                  Subscribe
-                </Button>
-              </div>
-            </div>
-          </div>
+            
 
           {/* Bottom Bar */}
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">

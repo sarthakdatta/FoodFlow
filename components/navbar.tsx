@@ -12,6 +12,7 @@ import { useUser, SignedIn, SignedOut, SignOutButton } from "@clerk/nextjs";
 
 
 
+
 export default function NavBar() {
  const { isLoaded, isSignedIn, user } = useUser();
 
@@ -28,7 +29,10 @@ export default function NavBar() {
        {/* Brand / Logo */}
      
        <Link href="/">
-         <h1 className="text-white text-4xl font-bold mt-4">FoodFlow</h1>
+       
+         <h1 className="text-white text-4xl font-bold mt-4">
+          FoodFlow
+          </h1>
        </Link>
 
 
